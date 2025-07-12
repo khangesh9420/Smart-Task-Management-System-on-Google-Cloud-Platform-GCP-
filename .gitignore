@@ -1,0 +1,43 @@
+# Python
+__pycache__/
+*.py[cod]
+*.sqlite3
+instance/
+.env
+.env.*
+
+# Flask
+*.log
+.mypy_cache/
+.vscode/
+
+# Alembic
+migrations/versions/
+
+# Node
+node_modules/
+build/
+dist/
+.npm/
+.npmrc
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Docker
+*.pid
+*.sock
+*.db
+*.tar
+pgdata/
+
+# IDEs
+.idea/
+*.swp
+
+# Bytecode
+*.pyc
+
+# VSCode
+.vscode/
