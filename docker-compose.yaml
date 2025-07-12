@@ -1,0 +1,51 @@
+version: '3.9'
+
+services:
+  postgres:
+    image: postgres:15
+    container_name: stm-postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./services/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql  # 👈 This line ensures DBs are created
+
+  user-service:
+    container_name: stm-user
+    build:
+      context: ./services/user-services
+    depends_on:
+      - postgres
+    environment:
+      - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/users_db
+    ports:
+      - "5000:5000"
+
+  project-service:
+    container_name: stm-project
+    build:
+      context: ./services/project-services
+    depends_on:
+      - postgres
+    environment:
+      - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/projects_db
+    ports:
+      - "5001:5000"
+
+  frontend:
+    container_name: stm-frontend
+    build:
+      context: ./services/frontend
+    ports:
+      - "3000:80"
+    depends_on:
+      - user-service
+      - project-service
+    stdin_open: true
+    tty: true
+
+volumes:
+  postgres_data:
