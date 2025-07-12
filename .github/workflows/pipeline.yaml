@@ -1,0 +1,66 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      TAG: ${{ github.sha }}
+      DATABASE_URL_USERS: postgresql://postgres:postgres@localhost:5432/users_db
+      DATABASE_URL_PROJECTS: postgresql://postgres:postgres@localhost:5432/projects_db
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Create databases
+        run: |
+          sudo apt-get install -y postgresql-client
+          PGPASSWORD=postgres psql -h localhost -U postgres -c "CREATE DATABASE users_db;"
+          PGPASSWORD=postgres psql -h localhost -U postgres -c "CREATE DATABASE projects_db;"
+
+      - name: Docker Login
+        run: echo "${{ secrets.DOCKER_PASS }}" | docker login -u "${{ secrets.DOCKER_USER }}" --password-stdin
+
+      - name: Build and Push user-services image
+        run: |
+          docker build -t ${{ secrets.DOCKER_USER }}/stm-user:${TAG} ./services/user-services
+          docker push ${{ secrets.DOCKER_USER }}/stm-user:${TAG}
+
+      - name: Build and Push project-services image
+        run: |
+          docker build -t ${{ secrets.DOCKER_USER }}/stm-project:${TAG} ./services/project-services
+          docker push ${{ secrets.DOCKER_USER }}/stm-project:${TAG}
+
+      - name: Build and Push frontend image
+        run: |
+          docker build -t ${{ secrets.DOCKER_USER }}/stm-frontend:${TAG} ./services/frontend
+          docker push ${{ secrets.DOCKER_USER }}/stm-frontend:${TAG}
+
+      - name: Summary
+        run: echo "All Docker images built and pushed with tag ${TAG}."
