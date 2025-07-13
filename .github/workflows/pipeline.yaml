@@ -27,7 +27,7 @@ jobs:
           --health-retries 5
 
     env:
-      TAG: ${{ github.sha }}
+      TAG: build-${{ github.run_number }}
       DATABASE_URL_USERS: postgresql://postgres:postgres@localhost:5432/users_db
       DATABASE_URL_PROJECTS: postgresql://postgres:postgres@localhost:5432/projects_db
 
@@ -73,3 +73,5 @@ jobs:
 
       - name: Summary
         run: echo "All Docker images built and pushed to GAR with tag ${TAG}"
+
+    
