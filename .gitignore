@@ -41,3 +41,36 @@ pgdata/
 
 # VSCode
 .vscode/
+
+# Local Terraform state
+*.tfstate
+*.tfstate.backup
+
+# Crash logs
+crash.log
+
+# Sensitive variable files (if any)
+*.tfvars
+*.tfvars.json
+
+# Terraform plan files
+*.tfplan
+
+# Terraform provider/plugin directories (if using older versions)
+.terraform/
+.terraform.lock.hcl
+
+# Terraform override files
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+
+# IDE/editor config (optional)
+.vscode/
+.idea/
+.DS_Store
+*.swp
+
+# OS/system files
+Thumbs.db
