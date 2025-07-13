@@ -29,3 +29,30 @@ variable "tags" {
   default     = ["dev-instance"]
   
 }
+variable "location" {
+  description = "The location for the GCS bucket."
+  type        = string
+  default     = "us-central1"
+  
+}
+variable "cluster_name" {
+  description = "The name of the GKE cluster."
+  type        = string
+  default     = "gke-cluster"
+}
+variable "node_count" {
+  description = "The number of nodes in the GKE cluster."
+  type        = number
+  default     = 3
+  
+}
+variable "machine_type" {
+  description = "The machine type for the GKE nodes."
+  type        = string
+  default     = "e2-medium"
+}
+variable "repository_name" {
+  description = "The name of the Artifact Registry repository."
+  type        = string
+  default     = "stm-repository"
+}

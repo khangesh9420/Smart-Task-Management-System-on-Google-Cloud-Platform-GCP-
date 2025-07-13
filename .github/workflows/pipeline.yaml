@@ -1,4 +1,4 @@
-name: CI/CD Pipeline
+name: CI/CD Pipeline to GAR
 
 on:
   push:
@@ -35,32 +35,41 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v1
+        with:
+          credentials_json: '${{ secrets.GCP_SA_KEY }}'
+
+      - name: Set up gcloud CLI
+        uses: google-github-actions/setup-gcloud@v1
+        with:
+          project_id: ${{ secrets.GCP_PROJECT_ID }}
+
+      - name: Configure Docker for Google Artifact Registry
+        run: gcloud auth configure-docker ${{ secrets.GAR_REGION }}-docker.pkg.dev --quiet
+
+      - name: Install PostgreSQL client
+        run: sudo apt-get install -y postgresql-client
 
       - name: Create databases
         run: |
-          sudo apt-get install -y postgresql-client
           PGPASSWORD=postgres psql -h localhost -U postgres -c "CREATE DATABASE users_db;"
           PGPASSWORD=postgres psql -h localhost -U postgres -c "CREATE DATABASE projects_db;"
 
-      - name: Docker Login
-        run: echo "${{ secrets.DOCKER_PASS }}" | docker login -u "${{ secrets.DOCKER_USER }}" --password-stdin
-
       - name: Build and Push user-services image
         run: |
-          docker build -t ${{ secrets.DOCKER_USER }}/stm-user:${TAG} ./services/user-services
-          docker push ${{ secrets.DOCKER_USER }}/stm-user:${TAG}
+          docker build -t ${{ secrets.GAR_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.GAR_REPO_NAME }}/stm-user:${TAG} ./services/user-services
+          docker push ${{ secrets.GAR_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.GAR_REPO_NAME }}/stm-user:${TAG}
 
       - name: Build and Push project-services image
         run: |
-          docker build -t ${{ secrets.DOCKER_USER }}/stm-project:${TAG} ./services/project-services
-          docker push ${{ secrets.DOCKER_USER }}/stm-project:${TAG}
+          docker build -t ${{ secrets.GAR_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.GAR_REPO_NAME }}/stm-project:${TAG} ./services/project-services
+          docker push ${{ secrets.GAR_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.GAR_REPO_NAME }}/stm-project:${TAG}
 
       - name: Build and Push frontend image
         run: |
-          docker build -t ${{ secrets.DOCKER_USER }}/stm-frontend:${TAG} ./services/frontend
-          docker push ${{ secrets.DOCKER_USER }}/stm-frontend:${TAG}
+          docker build -t ${{ secrets.GAR_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.GAR_REPO_NAME }}/stm-frontend:${TAG} ./services/frontend
+          docker push ${{ secrets.GAR_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.GAR_REPO_NAME }}/stm-frontend:${TAG}
 
       - name: Summary
-        run: echo "All Docker images built and pushed with tag ${TAG}."
+        run: echo "All Docker images built and pushed to GAR with tag ${TAG}"
