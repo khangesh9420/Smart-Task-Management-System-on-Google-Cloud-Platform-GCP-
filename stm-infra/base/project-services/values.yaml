@@ -2,7 +2,7 @@ replicaCount: 2
 
 image:
   repository: us-central1-docker.pkg.dev/sodium-petal-465008-t0/stm-repository/stm-project
-  tag: build-18
+  tag: build-22
   pullPolicy: IfNotPresent
 
 imagePullSecrets: []
@@ -21,7 +21,6 @@ ingress:
     kubernetes.io/ingress.class: nginx
     cert-manager.io/cluster-issuer: letsencrypt-prod
     nginx.ingress.kubernetes.io/use-regex: "true"
-    nginx.ingress.kubernetes.io/rewrite-target: /$2
     nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
   hosts:
     - host: user.khangesh.store

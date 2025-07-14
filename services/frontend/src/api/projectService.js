@@ -1,6 +1,7 @@
 import axios from 'axios';
 
-const BASE_URL = 'http://localhost:5001/projects';  // or your docker host if needed
+//const BASE_URL = 'http://localhost:5001/projects';  // or your docker host if needed
+const BASE_URL = 'https://user.khangesh.store/projects/';
 
 export const createProject = (projectData) =>
   axios.post(`${BASE_URL}/`, projectData);

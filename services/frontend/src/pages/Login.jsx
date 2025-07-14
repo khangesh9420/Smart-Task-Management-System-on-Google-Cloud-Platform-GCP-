@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
-const API_BASE = 'http://localhost:5000/users';
+const API_BASE = 'https://user.khangesh.store/users';
 
 export default function Login() {
   const [mode, setMode] = useState('login'); // 'login' or 'register'

@@ -8,7 +8,8 @@ def create_app():
     app = Flask(__name__)
     app.config.from_object('app.config.Config')
 
-    CORS(app, origins="*")
+    #CORS(app, origins="*")
+    CORS(app, origins=["https://user.khangesh.store"], supports_credentials=True)
     db.init_app(app)
 
     # ✅ Register main user routes

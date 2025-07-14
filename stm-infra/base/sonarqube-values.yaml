@@ -1,0 +1,39 @@
+community:
+  enabled: true
+
+monitoringPasscode: "mysecurepasscode"  # ✅ Must be top-level
+
+postgresql:
+  enabled: true
+  postgresqlUsername: sonar
+  postgresqlPassword: sonarpass
+  postgresqlDatabase: sonarqube
+
+sonarqube:
+  resources:
+    requests:
+      cpu: "200m"
+      memory: "512Mi"
+    limits:
+      cpu: "500m"
+      memory: "1Gi"
+  service:
+    type: ClusterIP
+  web:
+    contextPath: /sonarqube
+
+ingress:
+  enabled: true
+  ingressClassName: nginx
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+  hosts:
+    - name: sonarqube.khangesh.store
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - hosts:
+        - sonarqube.khangesh.store
+      secretName: user-service-tls
