@@ -16,4 +16,5 @@ RUN chmod +x wait-for-postgres.sh
 
 # Entrypoint: wait for DB, then start Gunicorn server
 ENTRYPOINT ["./wait-for-postgres.sh"]
-CMD ["gunicorn", "-w", "4", "-b", "0.0.0.0:5000", "app:create_app()"]
+CMD ["gunicorn", "-w", "4", "-b", "0.0.0.0:5000", "app:create_app"]
+
