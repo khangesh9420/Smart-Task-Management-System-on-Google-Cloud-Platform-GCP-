@@ -156,6 +156,8 @@ jobs:
           BUILD_ID: ${{ env.BUILD_ID }}
 
       - name: Commit and Push updated Helm tags
+        env:
+          GITHUB_TOKEN: ${{ secrets.TOKEN_GH }}
         run: |
           git add stm-infra/base/*/values.yaml
           git commit -m "🔁 Update Helm image tags to $TAG"
