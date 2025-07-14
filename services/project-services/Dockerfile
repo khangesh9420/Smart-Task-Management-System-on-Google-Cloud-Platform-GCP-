@@ -26,4 +26,5 @@ EXPOSE 5000
 
 # Wait for PostgreSQL before starting Flask
 ENTRYPOINT ["./wait-for-postgres.sh"]
-CMD ["flask", "run"]
+CMD ["gunicorn", "-w", "4", "-b", "0.0.0.0:5000", "wsgi:app"]
+
