@@ -2,7 +2,7 @@ replicaCount: 2
 
 image:
   repository: us-central1-docker.pkg.dev/sodium-petal-465008-t0/stm-repository/stm-user
-  tag: build-13
+  tag: build-15
   pullPolicy: IfNotPresent
 
 imagePullSecrets: []
@@ -44,7 +44,7 @@ env:
     value: super-secret-key  # Use a Kubernetes Secret in production
 
 command: ["gunicorn"]
-args: ["-w", "4", "-b", "0.0.0.0:5000", "app:create_app()"]
+args: ["-w", "4", "-b", "0.0.0.0:5000", "wsgi:app"]
 
 resources:
   requests:
