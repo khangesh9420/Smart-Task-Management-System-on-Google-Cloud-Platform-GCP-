@@ -14,6 +14,11 @@ def create_app():
     from .routes import project_bp
     app.register_blueprint(project_bp, url_prefix='/projects')
 
+    # ✅ Add health check route
+    @app.route('/health')
+    def health():
+        return 'OK', 200
+
     with app.app_context():
         db.create_all()
 
