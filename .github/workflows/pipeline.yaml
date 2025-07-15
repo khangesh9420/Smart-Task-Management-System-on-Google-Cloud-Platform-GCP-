@@ -20,20 +20,6 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
-    services:
-      postgres:
-        image: postgres:15
-        env:
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -41,31 +27,49 @@ jobs:
       - name: Install PostgreSQL client
         run: sudo apt-get install -y postgresql-client
 
-      - name: Create databases
+      - name: Set up database
         run: |
+          docker run -d -e POSTGRES_USER=postgres -e POSTGRES_PASSWORD=postgres -p 5432:5432 --name postgres postgres:15
+          sleep 15
           PGPASSWORD=postgres psql -h localhost -U postgres -c "CREATE DATABASE users_db;"
           PGPASSWORD=postgres psql -h localhost -U postgres -c "CREATE DATABASE projects_db;"
 
-      - name: Build Docker images
-        run: |
-          docker build -t stm-user:${TAG} ./services/user-services
-          docker build -t stm-project:${TAG} ./services/project-services
-          docker build -t stm-frontend:${TAG} ./services/frontend
+      - name: Detect changed services
+        id: changes
+        uses: dorny/paths-filter@v3
+        with:
+          filters: |
+            frontend:
+              - 'services/frontend/**'
+            user-services:
+              - 'services/user-services/**'
+            project-services:
+              - 'services/project-services/**'
 
-      - name: Save Docker images
+      - name: Build frontend image
+        if: steps.changes.outputs.frontend == 'true'
         run: |
-          docker save stm-user:${TAG} > user.tar
-          docker save stm-project:${TAG} > project.tar
+          docker build -t stm-frontend:${TAG} ./services/frontend
           docker save stm-frontend:${TAG} > frontend.tar
 
-      - name: Upload built images as artifacts
+      - name: Build user-services image
+        if: steps.changes.outputs.user-services == 'true'
+        run: |
+          docker build -t stm-user:${TAG} ./services/user-services
+          docker save stm-user:${TAG} > user.tar
+
+      - name: Build project-services image
+        if: steps.changes.outputs.project-services == 'true'
+        run: |
+          docker build -t stm-project:${TAG} ./services/project-services
+          docker save stm-project:${TAG} > project.tar
+
+      - name: Upload built images
         uses: actions/upload-artifact@v4
         with:
           name: docker-images
           path: |
-            user.tar
-            project.tar
-            frontend.tar
+            *.tar
 
   test:
     runs-on: ubuntu-latest
@@ -89,7 +93,7 @@ jobs:
 
       - name: Run SonarQube Scan
         run: sonar-scanner -Dsonar.login=${{ secrets.SONAR_TOKEN }}
-      
+
   deploy:
     runs-on: ubuntu-latest
     needs: [build, test]
@@ -108,32 +112,26 @@ jobs:
         with:
           project_id: ${{ secrets.GCP_PROJECT_ID }}
 
-      - name: Configure Docker for Google Artifact Registry
+      - name: Configure Docker for GAR
         run: gcloud auth configure-docker ${{ secrets.GAR_REGION }}-docker.pkg.dev --quiet
 
-      - name: Download built Docker images
+      - name: Download images
         uses: actions/download-artifact@v4
         with:
           name: docker-images
 
       - name: Load Docker images
         run: |
-          docker load < user.tar
-          docker load < project.tar
-          docker load < frontend.tar
+          for tar in *.tar; do docker load < $tar; done
 
       - name: Tag and Push Docker images
         run: |
-          docker tag stm-user:${TAG} ${{ secrets.GAR_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.GAR_REPO_NAME }}/stm-user:${TAG}
-          docker tag stm-project:${TAG} ${{ secrets.GAR_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.GAR_REPO_NAME }}/stm-project:${TAG}
-          docker tag stm-frontend:${TAG} ${{ secrets.GAR_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.GAR_REPO_NAME }}/stm-frontend:${TAG}
-
-          docker push ${{ secrets.GAR_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.GAR_REPO_NAME }}/stm-user:${TAG}
-          docker push ${{ secrets.GAR_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.GAR_REPO_NAME }}/stm-project:${TAG}
-          docker push ${{ secrets.GAR_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.GAR_REPO_NAME }}/stm-frontend:${TAG}
-
-      - name: Summary
-        run: echo "All Docker images pushed to GAR with tag ${TAG}"
+          for img in stm-user stm-project stm-frontend; do
+            if docker image inspect ${img}:${TAG} > /dev/null 2>&1; then
+              docker tag ${img}:${TAG} ${{ secrets.GAR_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.GAR_REPO_NAME }}/${img}:${TAG}
+              docker push ${{ secrets.GAR_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.GAR_REPO_NAME }}/${img}:${TAG}
+            fi
+          done
 
   publish:
     runs-on: ubuntu-latest
@@ -158,7 +156,7 @@ jobs:
         env:
           BUILD_ID: ${{ env.BUILD_ID }}
 
-      - name: Commit and Push updated Helm tags
+      - name: Commit and Push Helm updates
         env:
           GITHUB_TOKEN: ${{ secrets.TOKEN_GH }}
         run: |
