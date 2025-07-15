@@ -96,11 +96,7 @@ Automated via GitHub Actions and pushed to Artifact Registry.
 
 ### 3. Deploy with ArgoCD
 
-ArgoCD continuously deploys Helm charts stored in the repo:
-
-```bash
-helm install smart-task-system ./stm-infra/base -f deploy/values.yaml
-```
+ArgoCD continuously deploys Helm charts stored in the repo
 
 ---
 
