@@ -2,7 +2,7 @@ replicaCount: 2
 
 image:
   repository: us-central1-docker.pkg.dev/sodium-petal-465008-t0/stm-repository/stm-user
-  tag: build-22
+  tag: build-35
   pullPolicy: IfNotPresent
 
 imagePullSecrets: []
@@ -17,6 +17,7 @@ containerPort: 5000
 ingress:
   enabled: true
   className: nginx
+  name: user-services
   annotations: 
     kubernetes.io/ingress.class: nginx
     cert-manager.io/cluster-issuer: letsencrypt-prod
