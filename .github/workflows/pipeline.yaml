@@ -23,6 +23,8 @@ env:
 jobs:
   build:
     runs-on: ubuntu-latest
+    outputs:
+      images_uploaded: ${{ steps.check-uploaded-images.outputs.found }}
 
     steps:
       - name: Checkout code
@@ -69,11 +71,22 @@ jobs:
           docker save stm-project:${TAG} > project.tar
 
       - name: Upload built images
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: docker-images
           path: |
             *.tar
+
+      - name: Check if images were uploaded
+        id: check-uploaded-images
+        run: |
+          count=$(ls *.tar 2>/dev/null | wc -l)
+          if [ "$count" -gt 0 ]; then
+            echo "found=true" >> $GITHUB_OUTPUT
+          else
+            echo "found=false" >> $GITHUB_OUTPUT
+          fi
 
   test:
     runs-on: ubuntu-latest
@@ -100,6 +113,7 @@ jobs:
 
   push:
     runs-on: ubuntu-latest
+    if: needs.build.outputs.images_uploaded == 'true'
     needs: [build, test]
 
     steps:
@@ -120,13 +134,20 @@ jobs:
         run: gcloud auth configure-docker ${{ secrets.GAR_REGION }}-docker.pkg.dev --quiet
 
       - name: Download images
+        if: always()
         uses: actions/download-artifact@v4
         with:
           name: docker-images
+          path: .
 
       - name: Load Docker images
+        if: always()
         run: |
-          for tar in *.tar; do docker load < $tar; done
+          for tar in *.tar; do
+            if [ -f "$tar" ]; then
+              docker load < "$tar"
+            fi
+          done
 
       - name: Tag and Push Docker images
         run: |
@@ -139,6 +160,7 @@ jobs:
 
   deploy:
     runs-on: ubuntu-latest
+    if: needs.push.result == 'success'
     needs: push
 
     env:
