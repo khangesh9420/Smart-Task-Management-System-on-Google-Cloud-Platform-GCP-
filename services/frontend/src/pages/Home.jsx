@@ -1,53 +1,64 @@
 import { Link } from 'react-router-dom';
+import { Carousel } from 'react-responsive-carousel';
+import "react-responsive-carousel/lib/styles/carousel.min.css";
+
+import img1 from '../assets/task1.jpg';
+import img2 from '../assets/task2.jpg';
+import img3 from '../assets/task3.jpg';
 
 export default function Home() {
   return (
-    <div className="min-h-screen bg-gray-100 flex flex-col">
-      {/* Login Button at Top-Right */}
-      <div className="w-full flex justify-end p-4">
-        <Link
-          to="/login"
-          className="bg-blue-600 text-white px-5 py-2 rounded hover:bg-blue-700 shadow-md"
+    <div className="min-h-screen bg-gray-50 text-gray-800 relative">
+      
+      {/* Top-right Login button */}
+      <div className="absolute top-4 right-4">
+        <Link 
+          to="/login" 
+          className="bg-blue-600 text-white px-4 py-2 rounded shadow hover:bg-blue-700 transition duration-300"
         >
           Login
         </Link>
       </div>
 
-      {/* Main Content */}
-      <div className="flex flex-col lg:flex-row items-center justify-between px-10 lg:px-32 py-10 gap-10">
-        {/* Left Text Section */}
-        <div className="max-w-xl">
-          <h1 className="text-4xl lg:text-5xl font-bold text-gray-800 mb-6">
-            Welcome to Smart Task Management
-          </h1>
-          <p className="text-lg text-gray-600 mb-4">
-            Organize your tasks efficiently, manage your team effortlessly, and
-            accomplish your goals faster. Whether you're working solo or leading a team,
-            Smart Task Management helps you stay on top of everything.
-          </p>
-          <p className="text-gray-600">
-            Track your progress, set deadlines, collaborate in real-time, and never miss a beat.
-          </p>
+      {/* Title & description */}
+      <div className="text-center mt-16 px-4">
+        <h1 className="text-4xl font-bold mb-4">Smart Task Management</h1>
+        <p className="text-lg max-w-3xl mx-auto">
+          Welcome to Smart Task Management – the ultimate platform to organize your tasks, boost productivity, and reach your goals effortlessly.
+        </p>
+      </div>
 
-          {/* About Button */}
-          <div className="mt-6">
-            <Link
-              to="/about"
-              className="text-blue-600 underline hover:text-blue-800"
-            >
-              Learn more about us →
-            </Link>
+      {/* Carousel */}
+      <div className="max-w-4xl mx-auto mt-12 px-4">
+        <Carousel 
+          autoPlay 
+          infiniteLoop 
+          showThumbs={false} 
+          showStatus={false} 
+          interval={4000}
+        >
+          <div>
+            <img src={img1} alt="Task Planning" />
+            <p className="legend">Plan your tasks visually</p>
           </div>
-        </div>
+          <div>
+            <img src={img2} alt="Progress Tracking" />
+            <p className="legend">Track progress in real time</p>
+          </div>
+          <div>
+            <img src={img3} alt="Collaborate Easily" />
+            <p className="legend">Collaborate with your team</p>
+          </div>
+        </Carousel>
+      </div>
 
-        {/* Image / Illustration */}
-        <div className="max-w-md">
-          <img
-            src="https://cdn.dribbble.com/users/14268/screenshots/3819292/media/2e4a87c5e7b7e29e1284ea531af85b36.gif"
-            alt="Task Management Illustration"
-            className="rounded-lg shadow-lg"
-          />
-        </div>
+      {/* About Section */}
+      <div className="mt-16 px-4 text-center max-w-3xl mx-auto">
+        <h2 className="text-2xl font-semibold mb-2">Why Smart Task Management?</h2>
+        <p className="text-md text-gray-600">
+          Whether you're managing a project, working with a team, or organizing your daily schedule — our platform provides the tools and flexibility you need.
+          Gain clarity, boost focus, and achieve more with less effort.
+        </p>
       </div>
     </div>
   );
