@@ -11,7 +11,13 @@ export default function Home() {
     <div className="min-h-screen bg-gray-50 text-gray-800 relative">
       
       {/* Top-right Login button */}
-      <div className="absolute top-4 right-4">
+      <div className="absolute top-4 right-4 flex gap-3">
+        <Link 
+          to="/dashboard" 
+          className="bg-purple-600 text-white px-4 py-2 rounded shadow hover:bg-purple-700 transition duration-300"
+        >
+          Dashboard
+        </Link>
         <Link 
           to="/login" 
           className="bg-blue-600 text-white px-4 py-2 rounded shadow hover:bg-blue-700 transition duration-300"
@@ -21,7 +27,7 @@ export default function Home() {
       </div>
 
       {/* Title & description */}
-      <div className="text-center mt-16 px-4">
+      <div className="text-center mt-20 px-4">
         <h1 className="text-4xl font-bold mb-4">Smart Task Management</h1>
         <p className="text-lg max-w-3xl mx-auto">
           Welcome to Smart Task Management – the ultimate platform to organize your tasks, boost productivity, and reach your goals effortlessly.
