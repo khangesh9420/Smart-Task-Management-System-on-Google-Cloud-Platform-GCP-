@@ -2,7 +2,7 @@ replicaCount: 2
 
 image:
   repository: us-central1-docker.pkg.dev/sodium-petal-465008-t0/stm-repository/stm-project
-  tag: build-42
+  tag: build-59
   pullPolicy: IfNotPresent
 
 imagePullSecrets: []
