@@ -63,7 +63,7 @@ export default function Home() {
         <h2 className="text-2xl font-semibold mb-2">Why Smart Task Management?</h2>
         <p className="text-md text-gray-600">
           Whether you're managing a project, working with a team, or organizing your daily schedule — our platform provides the tools and flexibility you need.
-          Gain clarity, boost focus, and achieve more with less effort.
+          Gain clarity, boost focus, and achieve more with less effort and better Management.
         </p>
       </div>
     </div>
