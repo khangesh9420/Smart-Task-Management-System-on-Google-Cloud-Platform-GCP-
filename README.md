@@ -17,7 +17,7 @@ A lightweight, cloud-native task/project management application deployed on **Go
 
 ![Architecture Diagram](STM_DIAGRAM.png)
 
-
+![CI-CD](images/CI-CD_pipeline.png)
 ![GKE](images/GKE.png)
 ![Artifact Registry](images/Artifact_registry.png)
 ![Terraform Remote Backend](images/Terraform_Remote_Backend.png)
