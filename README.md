@@ -15,7 +15,7 @@ A lightweight, cloud-native task/project management application deployed on **Go
 
 ## 🚀 Architecture Overview
 
-![Architecture Diagram](Images/STM_DIAGRAM.png)
+![Architecture Diagram](STM_DIAGRAM.png)
 
 
 ![GKE](images/GKE.png)
