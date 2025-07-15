@@ -42,11 +42,11 @@ env:
 # Optional: If you store env vars in a Kubernetes secret
 envSecretName: project-service-secret
 
-# Command and args to run app (e.g., Gunicorn, Flask, etc.)
+
 command: ["gunicorn"]
 args: ["-w", "4", "-b", "0.0.0.0:5001", "wsgi:app"]
 
-# Postgres details for init container
+
 postgres:
   host: postgres-db
   port: 5432
