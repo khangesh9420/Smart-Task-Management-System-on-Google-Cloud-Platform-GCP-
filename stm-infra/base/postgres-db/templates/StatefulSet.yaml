@@ -1,8 +1,9 @@
 apiVersion: apps/v1
-kind: Deployment
+kind: StatefulSet
 metadata:
   name: {{ .Release.Name }}
 spec:
+  serviceName: "{{ .Release.Name }}-headless"
   replicas: 1
   selector:
     matchLabels:
@@ -25,11 +26,24 @@ spec:
                 secretKeyRef:
                   name: {{ .Release.Name }}-secret
                   key: password
+            - name: PGDATA
+              value: /var/lib/postgresql/data/pgdata
           volumeMounts:
             - name: initdb
               mountPath: /docker-entrypoint-initdb.d/init.sql
               subPath: init.sql
+            - name: data
+              mountPath: /var/lib/postgresql/data
       volumes:
         - name: initdb
           configMap:
             name: {{ .Release.Name }}-initdb
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        storageClassName: standard-rwo
+        resources:
+          requests:
+            storage: 1Gi

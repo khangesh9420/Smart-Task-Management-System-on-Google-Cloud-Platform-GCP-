@@ -1,0 +1,19 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: stm-daemonset
+  namespace: daemonset
+spec:
+  selector:
+    matchLabels:
+      app: stm-daemonset 
+  template:
+    metadata:
+      labels:
+        app: stm-daemonset 
+    spec:
+      containers:
+      - name: stm-container
+        image: busybox
+        command: [ "sh", "-c", "while true; do echo Hello from $(hostname); sleep 30; done" ]
+          
