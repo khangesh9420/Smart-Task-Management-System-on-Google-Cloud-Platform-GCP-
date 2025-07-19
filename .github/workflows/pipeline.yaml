@@ -25,6 +25,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       images_uploaded: ${{ steps.check-uploaded-images.outputs.found }}
+      changed_services: ${{ steps.service-list.outputs.services }}
 
     steps:
       - name: Checkout code
@@ -51,6 +52,16 @@ jobs:
               - 'services/user-services/**'
             project-services:
               - 'services/project-services/**'
+
+      - name: Set changed service list
+        id: service-list
+        run: |
+          list=""
+          if [[ "${{ steps.changes.outputs.frontend }}" == "true" ]]; then list="${list}frontend,"; fi
+          if [[ "${{ steps.changes.outputs.user-services }}" == "true" ]]; then list="${list}user-services,"; fi
+          if [[ "${{ steps.changes.outputs.project-services }}" == "true" ]]; then list="${list}project-services,"; fi
+          list="${list%,}"  # remove trailing comma
+          echo "services=$list" >> $GITHUB_OUTPUT
 
       - name: Build frontend image
         if: steps.changes.outputs.frontend == 'true'
@@ -115,6 +126,8 @@ jobs:
     runs-on: ubuntu-latest
     if: needs.build.outputs.images_uploaded == 'true'
     needs: [build, test]
+    env:
+      CHANGED_SERVICES: ${{ needs.build.outputs.changed_services }}
 
     steps:
       - name: Checkout code
@@ -151,20 +164,25 @@ jobs:
 
       - name: Tag and Push Docker images
         run: |
-          for img in stm-user stm-project stm-frontend; do
-            if docker image inspect ${img}:${TAG} > /dev/null 2>&1; then
-              docker tag ${img}:${TAG} ${{ secrets.GAR_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.GAR_REPO_NAME }}/${img}:${TAG}
-              docker push ${{ secrets.GAR_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.GAR_REPO_NAME }}/${img}:${TAG}
-            fi
+          IFS=',' read -ra SERVICES <<< "${CHANGED_SERVICES}"
+          for service in "${SERVICES[@]}"; do
+            case "$service" in
+              user-services) img="stm-user" ;;
+              project-services) img="stm-project" ;;
+              frontend) img="stm-frontend" ;;
+              *) continue ;;
+            esac
+            docker tag ${img}:${TAG} ${{ secrets.GAR_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.GAR_REPO_NAME }}/${img}:${TAG}
+            docker push ${{ secrets.GAR_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.GAR_REPO_NAME }}/${img}:${TAG}
           done
 
   deploy:
     runs-on: ubuntu-latest
     if: needs.push.result == 'success'
     needs: push
-
     env:
       BUILD_ID: build-${{ github.run_number }}
+      CHANGED_SERVICES: ${{ needs.build.outputs.changed_services }}
 
     steps:
       - name: Checkout code
@@ -179,13 +197,14 @@ jobs:
         run: |
           chmod +x ./scripts/image-updater.sh
           ./scripts/image-updater.sh stm-infra/base
-        env:
-          BUILD_ID: ${{ env.BUILD_ID }}
 
       - name: Commit and Push Helm updates
         env:
           GITHUB_TOKEN: ${{ secrets.TOKEN_GH }}
         run: |
-          git add stm-infra/base/*/values.yaml
-          git commit -m "🔁 Update Helm image tags to $TAG"
-          git push origin main
+          git add -u stm-infra/base/*/values.yaml
+          if git diff --cached --quiet; then
+            echo "No changes to commit."
+          else
+            git commit -m "Update Helm image tags to $TAG"
+            git push origin main
