@@ -3,23 +3,39 @@ import { useNavigate } from 'react-router-dom';
 import { fetchProjects, fetchTasks, createProject } from '../api/projectService';
 
 export default function Dashboard() {
-  const username = localStorage.getItem('user') || 'User';
   const navigate = useNavigate();
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
   const [newProjectTitle, setNewProjectTitle] = useState('');
 
+  const username = localStorage.getItem('user');
   const defaultImages = [
     "/images/project1.png",
     "/images/project2.png",
     "/images/project3.png",
   ];
 
+  // Redirect to login if not logged in
+  useEffect(() => {
+    if (!username) {
+      console.warn("User not found in localStorage. Redirecting...");
+      navigate('/login');
+    }
+  }, [username, navigate]);
+
+  // Fetch projects and their tasks
   useEffect(() => {
     const fetchProjectsAndTasks = async () => {
       try {
-        const projectRes = await fetchProjects();
+        console.log("Fetching projects for:", username);
+        const projectRes = await fetchProjects(username); // Pass username!
         const projectsData = projectRes.data;
+
+        if (!Array.isArray(projectsData)) {
+          console.error("Expected array but got:", projectsData);
+          setProjects([]);
+          return;
+        }
 
         const enrichedProjects = await Promise.all(
           projectsData.map(async (proj, i) => {
@@ -31,7 +47,7 @@ export default function Dashboard() {
                 img: defaultImages[i % defaultImages.length],
               };
             } catch (err) {
-              console.error(`Failed to load tasks for project ${proj.id}`);
+              console.error(`Failed to load tasks for project ${proj.id}`, err);
               return {
                 ...proj,
                 tasks: 0,
@@ -43,14 +59,17 @@ export default function Dashboard() {
 
         setProjects(enrichedProjects);
       } catch (err) {
-        console.error("Error loading projects:", err);
+        console.error("Error loading projects:", err.response?.data || err.message);
+        setProjects([]);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchProjectsAndTasks();
-  }, []);
+    if (username) {
+      fetchProjectsAndTasks();
+    }
+  }, [username]);
 
   const handleLogout = () => {
     localStorage.removeItem('user');
@@ -62,8 +81,8 @@ export default function Dashboard() {
 
     try {
       const res = await createProject({
-        name: newProjectTitle,     // ✅ Backend expects 'name'
-        owner: username,           // ✅ Backend expects 'owner'
+        name: newProjectTitle,
+        owner: username,
       });
 
       const newProj = res.data;
@@ -87,7 +106,7 @@ export default function Dashboard() {
       {/* Top bar */}
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-4xl font-bold text-blue-700">
-          Welcome back, {username}!
+          Welcome back, {username || 'User'}!
         </h1>
         <button
           onClick={handleLogout}
@@ -117,6 +136,8 @@ export default function Dashboard() {
       {/* Project cards */}
       {loading ? (
         <p>Loading projects...</p>
+      ) : projects.length === 0 ? (
+        <p className="text-gray-500 text-center">No projects found. Start by creating one!</p>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
           {projects.map((project, index) => (

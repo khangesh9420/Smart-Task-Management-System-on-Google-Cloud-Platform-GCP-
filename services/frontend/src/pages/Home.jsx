@@ -44,15 +44,15 @@ export default function Home() {
           interval={4000}
         >
           <div>
-            <img src={img1} alt="Task Planning" />
+            <img src={img1} alt="Task_Planningg" />
             <p className="legend">Plan your tasks visually</p>
           </div>
           <div>
-            <img src={img2} alt="Progress Tracking" />
+            <img src={img2} alt="Progress_Tracking" />
             <p className="legend">Track progress in real time</p>
           </div>
           <div>
-            <img src={img3} alt="Collaborate Easily" />
+            <img src={img3} alt="Collaborate_Easily" />
             <p className="legend">Collaborate with your team</p>
           </div>
         </Carousel>

@@ -5,7 +5,7 @@ export default function About() {
       <p className="text-lg leading-relaxed">
         Smart Task Management is a powerful web-based tool designed to help you organize,
         prioritize, and execute your daily tasks efficiently. With an intuitive interface and
-        real-time collaboration, it transforms the way individuals and teams handle productivity.
+        real-time collaboration, it transforms the way individuals and teams handle productivity....
       </p>
     </div>
   );
