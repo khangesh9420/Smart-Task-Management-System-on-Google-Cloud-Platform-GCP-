@@ -56,3 +56,14 @@ variable "repository_name" {
   type        = string
   default     = "stm-repository"
 }
+variable "extra_clusters" {
+  description = "Map of additional GKE clusters to create"
+  type = map(object({
+    region       = string
+    zone         = string
+    cluster_name = string
+    node_count   = number
+    machine_type = string
+  }))
+  default = {}
+}

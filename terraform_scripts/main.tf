@@ -14,3 +14,15 @@ module "artifact-registry" {
   location      = var.location 
   repository_name = var.repository_name
 }
+
+module "extra_gke_clusters" {
+  for_each = var.extra_clusters
+
+  source       = "./modules/gke-cluster"
+  project_id   = var.project_id
+  region       = each.value.region
+  zone         = each.value.zone
+  cluster_name = each.value.cluster_name
+  node_count   = each.value.node_count
+  machine_type = each.value.machine_type
+}
