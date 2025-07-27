@@ -161,19 +161,20 @@ jobs:
 
       - name: Load Docker images
         run: |
-          for tar in *.tar; do
+          for tar in docker-images/*.tar; do
             [ -f "$tar" ] && docker load < "$tar"
           done
 
       - name: Scan Docker images with Trivy
         run: |
           failed=0
-          for tar in *.tar; do
+          for tar in docker-images/*.tar; do
             image=$(docker load < $tar | awk '{print $NF}')
             echo "Scanning $image"
             trivy image --severity HIGH,CRITICAL --exit-code 1 --no-progress "$image" || failed=1
           done
           exit $failed
+
 
   push:
     runs-on: ubuntu-latest
