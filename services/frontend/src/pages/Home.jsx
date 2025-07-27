@@ -13,7 +13,7 @@ export default function Home() {
       {/* Top-right Login and Dashboard buttons */}
       <div className="absolute top-4 right-4 flex gap-3">
         <Link 
-          to="/dashboard  " 
+          to="/dashboard_" 
           className="bg-purple-600 text-white px-4 py-2 rounded shadow hover:bg-purple-700 transition duration-300"
         >
           Dashboard
