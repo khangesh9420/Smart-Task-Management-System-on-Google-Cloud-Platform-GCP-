@@ -1,0 +1,23 @@
+trivy:
+  severity: "HIGH,CRITICAL"
+  ignoreUnfixed: true
+  resources:
+    requests:
+      cpu: 200m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+
+operator:
+  configAuditScannerEnabled: false
+  rbacAssessmentScannerEnabled: false
+  clusterComplianceEnabled: false
+  scanJobsConcurrentLimit: 1
+  nodeSelector:
+    cloud.google.com/gke-nodepool: highmem-pool
+  tolerations:
+    - key: "node.kubernetes.io/memory-pressure"
+      operator: "Exists"
+      effect: "NoSchedule"
+

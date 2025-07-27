@@ -137,6 +137,42 @@ jobs:
       - name: Run SonarQube Scan
         run: sonar-scanner -Dsonar.login=${{ secrets.SONAR_TOKEN }}
 
+  trivy-scan:
+    name: Trivy Image Scan
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Install Trivy
+        run: |
+          sudo apt-get update
+          sudo apt-get install wget apt-transport-https gnupg lsb-release -y
+          wget -qO - https://aquasecurity.github.io/trivy-repo/deb/public.key | sudo apt-key add -
+          echo deb https://aquasecurity.github.io/trivy-repo/deb $(lsb_release -sc) main | sudo tee /etc/apt/sources.list.d/trivy.list
+          sudo apt-get update
+          sudo apt-get install trivy -y
+
+      - name: Download built images
+        uses: actions/download-artifact@v4
+        with:
+          name: docker-images
+          path: .
+
+      - name: Load Docker images
+        run: |
+          for tar in *.tar; do
+            [ -f "$tar" ] && docker load < "$tar"
+          done
+
+      - name: Scan Docker images with Trivy
+        run: |
+          failed=0
+          for tar in *.tar; do
+            image=$(docker load < $tar | awk '{print $NF}')
+            echo "Scanning $image"
+            trivy image --severity HIGH,CRITICAL --exit-code 1 --no-progress "$image" || failed=1
+          done
+          exit $failed
+
   push:
     runs-on: ubuntu-latest
     if: needs.build.outputs.images_uploaded == 'true'
