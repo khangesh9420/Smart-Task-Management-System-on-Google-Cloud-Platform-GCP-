@@ -250,11 +250,14 @@ jobs:
         with:
           target: 'https://user.khangesh.store'
           fail_action: false
-          cmd_options: '-a -T 5 -r zap-report.html'
-  
-      - name: Upload ZAP Report
+          cmd_options: '-a -T 5 -r report_html.html -J report_json.json -w report_md.md'
+
+      - name: Upload ZAP Reports
         uses: actions/upload-artifact@v4
         with:
-          name: zap-report
-          path: zap-report.html
+          name: zap-reports
+          path: |
+            report_html.html
+            report_json.json
+            report_md.md
 
