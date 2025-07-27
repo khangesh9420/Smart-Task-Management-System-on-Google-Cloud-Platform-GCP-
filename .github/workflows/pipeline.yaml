@@ -151,11 +151,13 @@ jobs:
           sudo apt-get update
           sudo apt-get install trivy -y
 
-      - name: Download built images
+      - name: Download artifacts
         uses: actions/download-artifact@v4
         with:
-          name: docker-images
           path: .
+
+      - name: List downloaded files
+        run: ls -laR
 
       - name: Load Docker images
         run: |
