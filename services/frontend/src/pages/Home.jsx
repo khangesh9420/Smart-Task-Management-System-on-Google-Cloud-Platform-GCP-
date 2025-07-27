@@ -28,7 +28,7 @@ export default function Home() {
 
       {/* Title & description */}
       <div className="text-center mt-20 px-4">
-        <h1 className="text-4xl font-bold mb-4">Smart Task Management </h1>
+        <h1 className="text-4xl font-bold mb-4">Smart Task Management</h1>
         <p className="text-lg max-w-3xl mx-auto">
           Welcome to Smart Task Management – the ultimate platform to organize your tasks, boost productivity, and reach your goals effortlessly.
         </p>
@@ -44,7 +44,7 @@ export default function Home() {
           interval={4000}
         >
           <div>
-            <img src={img1} alt="Task_Planningg" />
+            <img src={img1} alt="Task Planningg" />
             <p className="legend">Plan your tasks visually</p>
           </div>
           <div>
