@@ -245,7 +245,7 @@ jobs:
     needs: deploy
     steps:
       - name: Run OWASP ZAP Baseline Scan
-        uses: zaproxy/action-baseline@v1
+        uses: zaproxy/action-baseline@v0.14.0
         with:
           target: 'https://user.khangesh.store'
           fail_action: false
