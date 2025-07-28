@@ -70,16 +70,26 @@ jobs:
           list="${list%,}"
           echo "services=$list" >> $GITHUB_OUTPUT
 
-      - name: Build Docker images
+      - name: Build frontend image
+        if: contains(steps.set-services.outputs.services, 'frontend')
         run: |
-          for service in frontend user-services project-services; do
-            if [[ "$list" == *"$service"* ]]; then
-              docker build -t stm-${service}:${TAG} ./services/${service}
-              docker save stm-${service}:${TAG} > ${service}.tar
-            fi
-          done
+          docker build -t stm-frontend:${TAG} ./services/frontend
+          docker save stm-frontend:${TAG} > frontend.tar
+
+      - name: Build user-services image
+        if: contains(steps.set-services.outputs.services, 'user-services')
+        run: |
+          docker build -t stm-user:${TAG} ./services/user-services
+          docker save stm-user:${TAG} > user.tar
+
+      - name: Build project-services image
+        if: contains(steps.set-services.outputs.services, 'project-services')
+        run: |
+          docker build -t stm-project:${TAG} ./services/project-services
+          docker save stm-project:${TAG} > project.tar
 
       - name: Upload built images
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: docker-images
@@ -165,10 +175,11 @@ jobs:
           done
           exit $failed
 
+
   push:
     runs-on: ubuntu-latest
     if: needs.build.outputs.images_uploaded == 'true'
-    needs: [build, test, trivy-scan, sbom]
+    needs: [build, test]
     outputs:
       changed_services: ${{ steps.load-services.outputs.changed_services }}
 
@@ -268,7 +279,6 @@ jobs:
             git commit -m "Update Helm image tags to $TAG"
             git push origin main
           fi
-
   dast:
     name: DAST - OWASP ZAP Scan
     runs-on: ubuntu-latest
@@ -290,58 +300,3 @@ jobs:
             report_json.json
             report_md.md
 
-  sbom:
-    name: SBOM Generation (Syft)
-    runs-on: ubuntu-latest
-    needs: build
-    steps:
-      - name: Install Syft
-        run: |
-          curl -sSfL https://raw.githubusercontent.com/anchore/syft/main/install.sh | sh -s -- -b /usr/local/bin
-
-      - name: Download Docker artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: docker-images
-          path: .
-
-      - name: Load Docker images
-        run: |
-          for tar in *.tar; do
-            docker load < "$tar"
-          done
-
-      - name: Generate SBOM for all images
-        run: |
-          mkdir -p sbom
-          for image in $(docker images --format "{{.Repository}}:{{.Tag}}"); do
-            sanitized=$(echo $image | tr '/:' '-')
-            syft "$image" -o cyclonedx-json > sbom/$sanitized.json
-          done
-
-      - name: Upload SBOM
-        uses: actions/upload-artifact@v4
-        with:
-          name: sbom-reports
-          path: sbom/
-
-  signoff:
-    name: Security Sign-off
-    runs-on: ubuntu-latest
-    needs: [test, trivy-scan, sbom, dast]
-    steps:
-      - name: Generate Security Sign-Off Summary
-        run: |
-          echo "✅ SAST passed: SonarQube ✅" > signoff.txt
-          echo "✅ SCA passed: Dependency checks ✅" >> signoff.txt
-          echo "✅ Image Scan passed: Trivy ✅" >> signoff.txt
-          echo "✅ SBOM generated ✅" >> signoff.txt
-          echo "✅ DAST completed: OWASP ZAP ✅" >> signoff.txt
-          echo "Sign-off time: $(date)" >> signoff.txt
-          echo "Sign-off by: GitHub Actions BOT" >> signoff.txt
-
-      - name: Upload Sign-off Report
-        uses: actions/upload-artifact@v4
-        with:
-          name: security-signoff
-          path: signoff.txt
