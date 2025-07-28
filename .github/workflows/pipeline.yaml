@@ -300,3 +300,59 @@ jobs:
             report_json.json
             report_md.md
 
+  sbom:
+    name: SBOM Generation (Syft)
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Install Syft
+        run: |
+          curl -sSfL https://raw.githubusercontent.com/anchore/syft/main/install.sh | sh -s -- -b /usr/local/bin
+
+      - name: Download Docker artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: docker-images
+          path: .
+
+      - name: Load Docker images
+        run: |
+          for tar in *.tar; do
+            docker load < "$tar"
+          done
+
+      - name: Generate SBOM for all images
+        run: |
+          mkdir -p sbom
+          for image in $(docker images --format "{{.Repository}}:{{.Tag}}"); do
+            sanitized=$(echo $image | tr '/:' '-')
+            syft "$image" -o cyclonedx-json > sbom/$sanitized.json
+          done
+
+      - name: Upload SBOM
+        uses: actions/upload-artifact@v4
+        with:
+          name: sbom-reports
+          path: sbom/
+
+  signoff:
+    name: Security Sign-off
+    runs-on: ubuntu-latest
+    needs: [test, trivy-scan, sbom, dast]
+    steps:
+      - name: Generate Security Sign-Off Summary
+        run: |
+          echo "✅ SAST passed: SonarQube ✅" > signoff.txt
+          echo "✅ SCA passed: Dependency checks ✅" >> signoff.txt
+          echo "✅ Image Scan passed: Trivy ✅" >> signoff.txt
+          echo "✅ SBOM generated ✅" >> signoff.txt
+          echo "✅ DAST completed: OWASP ZAP ✅" >> signoff.txt
+          echo "Sign-off time: $(date)" >> signoff.txt
+          echo "Sign-off by: GitHub Actions BOT" >> signoff.txt
+
+      - name: Upload Sign-off Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: security-signoff
+          path: signoff.txt
+
