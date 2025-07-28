@@ -14,7 +14,6 @@ COPY . .
 # Expose the port your app runs on
 EXPOSE 5000
 
-# Set environment variables (optional but helpful)
 ENV PYTHONUNBUFFERED=1
 
 # Command to run Gunicorn with your WSGI app
