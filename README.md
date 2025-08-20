@@ -26,6 +26,8 @@ A lightweight, cloud-native task/project management application deployed on **Go
 ![Prometheus Metrics](images/prometheus-metrics.png)
 ![Grafana Dashboard](images/grafana_dashboard.png)
 ![ArgoCd](images/argocd.png)
+![JiraAutomation](images/Automatic_jira_ticket_creation.png)
+![Slackchannel](images/Grafana-alerts)
 ![STM Application](images/stm_application.png)
 
 
