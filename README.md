@@ -27,7 +27,7 @@ A lightweight, cloud-native task/project management application deployed on **Go
 ![Grafana Dashboard](images/grafana_dashboard.png)
 ![ArgoCd](images/argocd.png)
 ![JiraAutomation](images/Automatic_jira_ticket_creation.png)
-![Slackchannel](images/Grafana-alerts)
+![Slackchannel](images/Grafana-alerts.png)
 ![STM Application](images/stm_application.png)
 
 
